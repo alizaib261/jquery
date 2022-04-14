@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Integration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container-fluid">
+    <div class="row">
+        <div class="col-6">
+            <form class="row g-3" id="form">
+                <div class="col-md-8">
+                  <label for="name" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="name" placeholder="Enter your name..">
+                </div>
+                <div class="col-md-8">
+                  <label for="email" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="email" placeholder="Enter your email..">
+                </div>
+                <div class="col-md-8">
+                  <label for="education" class="form-label">Education</label>
+                  <input type="text" class="form-control" id="education">
+                </div>
+                <div class="col-8">
+                  <label for="experience" class="form-label">Experience</label>
+                  <input type="text" class="form-control" id="experience">
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+                </div>
+              </form>
+        </div>
+        <div class="col-6">
+            <div id="message"></div>
+        </div>
+    </div>
+</div>
+  <!-- Modal -->
+  <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form class="row g-3" id="formUp">
+                <div class="col-md-8">
+                  <label for="nameUp" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="nameUp" placeholder="Enter your name..">
+                </div>
+                <div class="col-md-8">
+                  <label for="emailUp" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="emailUp" placeholder="Enter your email..">
+                </div>
+                <div class="col-md-8">
+                  <label for="educationUp" class="form-label">Education</label>
+                  <input type="text" class="form-control" id="educationUp">
+                </div>
+                <div class="col-8">
+                  <label for="experienceUp" class="form-label">Experience</label>
+                  <input type="text" class="form-control" id="experienceUp">
+                </div>
+              </form>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-primary" id="update"  data-bs-dismiss="modal">Update</button>
+        </div>
+      </div>
+    </div>
+  </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>
+    $(document).ready(function () {
+                $.ajax({
+                    type: "GET",
+                    url: "http://localhost:8000/users",
+                    dataType: "json",
+                    crossDomain: true,
+                    success: function (result, status, xhr) {
+                        var table = $("<table class='table'><thead class='table-dark'><tr><td style='display:none'>ID</td><td>Name</td><td>Email</td><td>Education</td><td>Experience</td><td>Action</td><thead>");
+                        for(var i=0;i<result.length;i++)
+                        {
+                            table.append("<tbody><tr><td style='display:none'>"+result[i]._id+"</td><td>"+result[i].name+"</td><td>"+result[i].email+"</td><td>"+result[i].education+"</td><td>"+result[i].experience+"</td><td><button type='button' class='btn btn-primary' id='edit' data-bs-toggle='modal' data-bs-target='#staticBackdrop'>Edit</button> <button  type='button' class='btn btn-danger' id='delete'>Delete</button></td></tbody>");
+                        }
+                        $("#message").html(table);
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+                    }
+                });
+
+                $(document).on("click","#submit", function (e) {
+                    e.preventDefault();
+                    var data = {
+                        name: $('#name').val(),
+                        email: $('#email').val(),
+                        education: $('#education').val(), 
+                        experience: $('#experience').val()
+                    }
+                    $.ajax({
+                    type: "POST",
+                    url: "http://localhost:8000/create",
+                    dataType: "json",
+                    contentType: "application/json",
+                    crossDomain: true,
+                    data:JSON.stringify(data),
+                    success: function (result) {
+                        console.log(result);
+                        location.reload();
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+                    }
+                });
+                });
+
+
+                $(document).on("click","#edit", function () {
+                    var name="";
+                    var email="";
+                    var education="";
+                    var experience="";
+                    var id = $(this).parent().parent().children()[0].textContent;
+                    $.ajax({
+                    type: "GET",
+                    url: "http://localhost:8000/users/"+id,
+                    dataType: "json",
+                    crossDomain: true,
+                    success: function (result, status, xhr) {
+                        $('#nameUp').val(result[0].name);
+                        $('#emailUp').val(result[0].email);
+                        $('#educationUp').val(result[0].education);
+                        $('#experienceUp').val(result[0].experience);
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+                    }
+                });
+                $(document).on("click","#update", function (e) {
+                    e.preventDefault();
+                    var data = {
+                        name: $('#nameUp').val(),
+                        email: $('#emailUp').val(),
+                        education: $('#educationUp').val(), 
+                        experience: $('#experienceUp').val()
+                    }
+                    $.ajax({
+                    type: "PUT",
+                    url: "http://localhost:8000/update/"+id,
+                    dataType: "json",
+                    contentType: "application/json",
+                    crossDomain: true,
+                    data:JSON.stringify(data),
+                    success: function (result) {
+                        console.log(result);
+                        location.reload();
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+                    }
+                });
+                    
+                });
+                    console.log(id);
+                    
+                });
+                
+                $(document).on("click","#delete", function () {
+                    var btn = $(this).parent().parent().children()[0].textContent; 
+                    console.log(btn);
+                    $.ajax({
+                    type: "DELETE",
+                    url: "http://localhost:8000/delete/"+btn,
+                    dataType: "json",
+                    crossDomain: true,
+                    success: function (result, status, xhr) {
+                        location.reload();
+                    },
+                    error: function (xhr, status, error) {
+                        alert("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+                    }
+                });
+                });
+
+
+    
+    
+    });
+    </script>
+</body>
+</html>
